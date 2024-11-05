@@ -4,17 +4,19 @@ ARG USER_HOME_DIR="/home/user"
 ARG WORK_DIR="/projects"
 
 ENV HOME=${USER_HOME_DIR}
-ENV BUILDAH_ISOLATION=chroot
 
 COPY --chown=0:0 entrypoint.sh /
 
 RUN microdnf --disableplugin=subscription-manager install -y git; \
     microdnf update -y ; \
     microdnf clean all ; \
+    # Create the user's home directory
     mkdir -p ${USER_HOME_DIR} ; \
+    # Create the mount point for the workspace projects
     mkdir -p ${WORK_DIR} ; \
     chgrp -R 0 /home ; \
     chmod +x /entrypoint.sh ; \
+    # Make the user config files editable so that the user's random UID/GID assigned by OpenShift can be injected
     chmod -R g=u /etc/passwd /etc/group /home ${WORK_DIR}
 
 WORKDIR ${WORK_DIR}
