@@ -1,0 +1,22 @@
+FROM registry.access.redhat.com/ubi9-minimal
+
+ARG USER_HOME_DIR="/home/user"
+ARG WORK_DIR="/projects"
+
+ENV HOME=${USER_HOME_DIR}
+ENV BUILDAH_ISOLATION=chroot
+
+COPY --chown=0:0 entrypoint.sh /
+
+RUN microdnf --disableplugin=subscription-manager install -y git; \
+    microdnf update -y ; \
+    microdnf clean all ; \
+    mkdir -p ${USER_HOME_DIR} ; \
+    mkdir -p ${WORK_DIR} ; \
+    chgrp -R 0 /home ; \
+    chmod +x /entrypoint.sh ; \
+    chmod -R g=u /etc/passwd /etc/group /home ${WORK_DIR}
+
+WORKDIR ${WORK_DIR}
+ENTRYPOINT [ "/entrypoint.sh" ]
+CMD [ "tail", "-f", "/dev/null" ]
